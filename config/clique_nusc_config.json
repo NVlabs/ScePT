@@ -1,0 +1,256 @@
+{
+  "grad_clip": 1.0,
+  "adj_radius": {
+    "PEDESTRIAN": {
+      "PEDESTRIAN": 3.0,
+      "VEHICLE": 5.0
+    },
+    "VEHICLE": {
+      "VEHICLE": 20.0,
+      "PEDESTRIAN": 5.0
+    }
+  },
+  "learning_rate_style": "exp",
+  "learning_rate": 0.0015,
+  "min_learning_rate": 0.0002,
+  "learning_decay_rate": 0.9999,
+  "use_lane_info": true,
+  "use_lane_dec": true,
+  "use_scaler": false,
+  "pred_num_samples": 4,
+  "eval_num_samples": 10,
+  "prediction_horizon": 8,
+  "minimum_history_length": 1,
+  "maximum_history_length": 7,
+  "safety_horizon": 10,
+  "log_pi_clamp": -10.0,
+  "map_encoder": {
+    "VEHICLE": {
+      "heading_state_index": 3,
+      "patch_size": [
+        50,
+        10,
+        50,
+        90
+      ],
+      "map_channels": 3,
+      "hidden_channels": [
+        10,
+        20,
+        10,
+        1
+      ],
+      "output_size": 32,
+      "masks": [
+        5,
+        5,
+        5,
+        3
+      ],
+      "strides": [
+        2,
+        2,
+        1,
+        1
+      ],
+      "dropout": 0.5
+    }
+  },
+  "k": 1,
+  "k_eval": 1,
+  "kl_min": 0.07,
+  "kl_weight": 100.0,
+  "kl_weight_start": 1,
+  "kl_crossover": 400,
+  "kl_sigmoid_divisor": 4,
+  "gamma_init": 0.2,
+  "gamma_end": 0.9,
+  "gamma_crossover": 3000,
+  "gamma_sigmoid_divisor": 3,
+  "col_weight": 0.0,
+  "col_weight_start": 0.0,
+  "col_crossover": 100,
+  "col_sigmoid_divisor": 4,
+  "ref_match_weight_init": 0.3,
+  "ref_match_weight_final": 0.2,
+  "ref_match_weight_decay_rate": 0.997,
+  "max_clique_size": 4,
+  "rnn_kwargs": {
+    "dropout_keep_prob": 0.75
+  },
+  "MLP_dropout_keep_prob": 0.9,
+  "enc_rnn_dim_edge": 32,
+  "enc_rnn_dim_history": 32,
+  "enc_rnn_dim_future": 32,
+  "dec_rnn_dim": 128,
+  "RNN_proj_hidden_dim": [
+    64
+  ],
+  "edge_encoding_dim": 32,
+  "log_p_yt_xz_max": 6,
+  "K": 4,
+  "use_z_logit_clipping": true,
+  "z_logit_clip_start": 0.05,
+  "z_logit_clip_final": 5.0,
+  "z_logit_clip_crossover": 300,
+  "z_logit_clip_divisor": 5,
+  "incl_robot_node": true,
+  "score_net_hidden_dim": [
+    32
+  ],
+  "obs_enc_dim": 32,
+  "obs_net_internal_dim": 16,
+  "policy_obs_LSTM_hidden_dim": 64,
+  "policy_state_LSTM_hidden_dim": 64,
+  "policy_FC_hidden_dim": [
+    128,
+    64
+  ],
+  "max_greedy_sample": 10,
+  "max_random_sample": 10,
+  "edge_pre_enc_net": {
+    "PEDESTRIAN": {
+      "PEDESTRIAN": "PED_PED_encode",
+      "VEHICLE": "PED_VEH_encode"
+    },
+    "VEHICLE": {
+      "PEDESTRIAN": "VEH_PED_encode",
+      "VEHICLE": "VEH_VEH_encode"
+    }
+  },
+  "rel_state_fun": {
+    "PEDESTRIAN": "PED_rel_state",
+    "VEHICLE": "VEH_rel_state"
+  },
+  "node_pre_encode_net": {
+    "PEDESTRIAN": {
+      "module": "PED_pre_encode",
+      "enc_dim": 32
+    },
+    "VEHICLE": {
+      "module": "VEH_pre_encode",
+      "enc_dim": 32
+    }
+  },
+  "collision_fun": {
+    "PEDESTRIAN": {
+      "PEDESTRIAN": {
+        "func": "PED_PED_collision",
+        "L": 6,
+        "W": 4,
+        "alpha": 2
+      },
+      "VEHICLE": {
+        "func": "PED_VEH_collision",
+        "L": 6,
+        "W": 4,
+        "alpha": 5
+      }
+    },
+    "VEHICLE": {
+      "PEDESTRIAN": {
+        "func": "VEH_PED_collision",
+        "L": 6,
+        "W": 4,
+        "alpha": 5
+      },
+      "VEHICLE": {
+        "func": "VEH_VEH_collision",
+        "L": 6,
+        "W": 4,
+        "alpha": 5
+      }
+    }
+  },
+  "dynamic": {
+    "PEDESTRIAN": {
+      "name": "DoubleIntegrator",
+      "distribution": true,
+      "limits": [
+        5,
+        5
+      ],
+      "input_dim": 2,
+      "default_con": "PED_no_control",
+      "state_dim": 4
+    },
+    "VEHICLE": {
+      "name": "Unicycle",
+      "input_dim": 2,
+      "state_dim": 4,
+      "distribution": true,
+      "default_con": "VEH_no_control",
+      "limits": [
+        5,
+        1
+      ]
+    }
+  },
+  "default_size": {
+    "PEDESTRIAN": [
+      0.5,
+      0.5
+    ],
+    "VEHICLE": [
+      6,
+      3
+    ]
+  },
+  "state": {
+    "PEDESTRIAN": {
+      "position": [
+        "x",
+        "y"
+      ],
+      "velocity": [
+        "x",
+        "y"
+      ]
+    },
+    "VEHICLE": {
+      "position": [
+        "x",
+        "y"
+      ],
+      "velocity": [
+        "norm"
+      ],
+      "heading": [
+        "°"
+      ]
+    }
+  },
+  "lane_info": {
+    "VEHICLE": {
+      "lane": [
+        "delta_y",
+        "delta_heading"
+      ]
+    }
+  },
+  "pred_state": {
+    "PEDESTRIAN": {
+      "position": [
+        "x",
+        "y"
+      ],
+      "velocity": [
+        "x",
+        "y"
+      ]
+    },
+    "VEHICLE": {
+      "position": [
+        "x",
+        "y"
+      ],
+      "velocity": [
+        "norm"
+      ],
+      "heading": [
+        "°"
+      ]
+    }
+  },
+  "log_histograms": false
+}
