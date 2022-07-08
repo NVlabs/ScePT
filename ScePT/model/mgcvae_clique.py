@@ -1522,8 +1522,10 @@ class MultimodalGenerativeCVAE_clique(nn.Module):
             mask[nt] = torch.zeros_like(batch_state_future_st[nt]).to(self.device)
             for i in range(batch_state_future_st[nt].shape[1]):
                 mask[nt][: batch_last_timestep[nt][i], i] = 1
-
-            N_z = int(torch.max(z_num[nt]))
+            if z_num[nt].nelement()>0:
+                N_z = int(torch.max(z_num[nt]))
+            else:
+                break
             Nnode = batch_state_future_st[nt].shape[1]
             loss_mat = torch.zeros_like(pi_list[nt], dtype=torch.float).to(self.device)
             if mode == ModeKeys.TRAIN:
@@ -1681,8 +1683,12 @@ class MultimodalGenerativeCVAE_clique(nn.Module):
             mask[nt] = torch.zeros_like(batch_state_future_st[nt]).to(self.device)
             for i in range(batch_state_future_st[nt].shape[1]):
                 mask[nt][: batch_last_timestep[nt][i], i] = 1
+            if z_num[nt].nelement()>0:
+                N_z = int(torch.max(z_num[nt]))
+            else:
+                break
+                N_z = 0
 
-            N_z = int(torch.max(z_num[nt]))
             Nnode[nt] = batch_state_future_st[nt].shape[1]
             ADE_mat = torch.zeros([Nnode[nt], N_z], dtype=torch.float).to(self.device)
             FDE_mat = torch.zeros([Nnode[nt], ft, N_z], dtype=torch.float).to(
