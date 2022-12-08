@@ -10,7 +10,6 @@ import random
 import pathlib
 from tqdm import tqdm
 import visualization
-import evaluation
 import matplotlib.pyplot as plt
 from argument_parser import args
 from model.ScePT import ScePT
@@ -30,9 +29,7 @@ import time
 # torch.autograd.set_detect_anomaly(True)
 
 import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
-from utils.comm import all_gather
-from collections import defaultdict
+
 
 from functools import partial
 from pathos.multiprocessing import ProcessPool as Pool
@@ -63,9 +60,9 @@ def make_video(rank):
     hyperparams["edge_encoding"] = not args.no_edge_encoding
 
     model_registrar = ModelRegistrar(model_dir, args.device)
-    ScePT = ScePT(model_registrar, hyperparams, None, args.device)
+    ScePT_model = ScePT(model_registrar, hyperparams, None, args.device)
     model_registrar.load_models(iter_num=args.iter_num)
-    ScePT.set_environment(env)
+    ScePT_model.set_environment(env)
     if (
         args.eval_data_dict == "nuScenes_train.pkl"
         or args.eval_data_dict == "nuScenes_val.pkl"
@@ -97,7 +94,7 @@ def make_video(rank):
 
         ft = hyperparams["prediction_horizon"]
         max_clique_size = hyperparams["max_clique_size"]
-        results, _, _ = ScePT.replay_prediction(
+        results, _, _ = ScePT_model.replay_prediction(
             scene,
             None,
             ft,
@@ -150,9 +147,9 @@ def sim_planning(rank):
     hyperparams["edge_encoding"] = not args.no_edge_encoding
 
     model_registrar = ModelRegistrar(model_dir, args.device)
-    ScePT = ScePT(model_registrar, hyperparams, None, args.device)
+    ScePT_model = ScePT(model_registrar, hyperparams, None, args.device)
     model_registrar.load_models(iter_num=args.iter_num)
-    ScePT.set_environment(env)
+    ScePT_model.set_environment(env)
     if (
         args.eval_data_dict == "nuScenes_train.pkl"
         or args.eval_data_dict == "nuScenes_val.pkl"
@@ -192,7 +189,7 @@ def sim_planning(rank):
     for n in scene_indices:
         scene = env.scenes[n]
         print(n)
-        results, extra_node_info, _ = ScePT.replay_prediction(
+        results, extra_node_info, _ = ScePT_model.replay_prediction(
             scene,
             None,
             ft,
@@ -243,7 +240,6 @@ def sim_planning(rank):
                     traj_plan[k] = xplan
         end = time.time()
         print("planning takes ", end - start)
-        pdb.set_trace()
 
         if args.video_name is None:
             visualization.sim_clique_prediction(
@@ -289,11 +285,11 @@ def simulate_prediction(rank):
 
     model_dir = os.path.join(args.log_dir, args.log_tag + args.trained_model_dir)
     model_registrar = ModelRegistrar(model_dir, args.device)
-    ScePT = ScePT(model_registrar, hyperparams, None, args.device)
+    ScePT_model = ScePT(model_registrar, hyperparams, None, args.device)
     model_registrar.load_models(iter_num=args.iter_num)
-    ScePT.set_environment(env)
+    ScePT_model.set_environment(env)
     scene = env.scenes[1]
-    results = ScePT.simulate_prediction(
+    results = ScePT_model.simulate_prediction(
         scene,
         15,
         hyperparams["maximum_history_length"],
@@ -358,7 +354,7 @@ def eval_statistics(rank):
     hyperparams["incl_robot_node"] = args.incl_robot_node
     hyperparams["batch_size"] = args.batch_size
     hyperparams["edge_encoding"] = not args.no_edge_encoding
-    ScePT = ScePT(model_registrar, hyperparams, None, args.device)
+    ScePT_model = ScePT(model_registrar, hyperparams, None, args.device)
 
     model_registrar.load_models(iter_num=args.iter_num)
     if "default_con" in hyperparams["dynamic"]["PEDESTRIAN"]:
@@ -374,7 +370,7 @@ def eval_statistics(rank):
     else:
         default_con = None
         dynamics = None
-    ScePT.set_environment(env)
+    ScePT_model.set_environment(env)
     if args.use_processed_data:
         with open(processed_eval_file, "rb") as f:
             eval_cliques = dill.load(f)
@@ -440,7 +436,7 @@ def eval_statistics(rank):
                     FDE_count,
                     coll_score,
                     nt_count,
-                ) = ScePT.eval_loss(batch, num_samples, criterion=1)
+                ) = ScePT_model.eval_loss(batch, num_samples, criterion=1)
                 for nt in env.node_type_list:
                     total_ADE[nt] += ADE[nt]
                     total_FDE[nt] += FDE[nt]
@@ -480,10 +476,10 @@ def plot_snapshot(rank):
     # hyperparams['max_clique_size'] = 8
 
     hyperparams["edge_encoding"] = not args.no_edge_encoding
-    ScePT = ScePT(model_registrar, hyperparams, None, args.device)
+    ScePT_model = ScePT(model_registrar, hyperparams, None, args.device)
     model_registrar.load_models(iter_num=args.iter_num)
     model_registrar.model_dict["policy_net"].max_Nnode = hyperparams["max_clique_size"]
-    ScePT.set_environment(env)
+    ScePT_model.set_environment(env)
     if (
         args.eval_data_dict == "nuScenes_train.pkl"
         or args.eval_data_dict == "nuScenes_val.pkl"
@@ -551,7 +547,7 @@ def plot_snapshot(rank):
         clique_input_pred,
         clique_ref_traj,
         clique_pi_list,
-    ) = ScePT.predict(
+    ) = ScePT_model.predict(
         clique_type,
         clique_state_history,
         clique_first_timestep,
@@ -625,10 +621,10 @@ def plot_snapshot_conditioning(rank):
     hyperparams["max_clique_size"] = 12
 
     hyperparams["edge_encoding"] = not args.no_edge_encoding
-    ScePT = ScePT(model_registrar, hyperparams, None, args.device)
+    ScePT_model = ScePT(model_registrar, hyperparams, None, args.device)
     model_registrar.load_models(iter_num=args.iter_num)
     model_registrar.model_dict["policy_net"].max_Nnode = hyperparams["max_clique_size"]
-    ScePT.set_environment(env)
+    ScePT_model.set_environment(env)
     if (
         args.eval_data_dict == "nuScenes_train.pkl"
         or args.eval_data_dict == "nuScenes_val.pkl"
@@ -693,7 +689,7 @@ def plot_snapshot_conditioning(rank):
         clique_input_pred,
         clique_ref_traj,
         clique_pi_list,
-    ) = ScePT.predict(
+    ) = ScePT_model.predict(
         clique_type,
         clique_state_history,
         clique_first_timestep,
@@ -784,7 +780,7 @@ def plot_snapshot_conditioning(rank):
         clique_input_pred,
         clique_ref_traj,
         clique_pi_list,
-    ) = ScePT.predict(
+    ) = ScePT_model.predict(
         clique_type,
         clique_state_history,
         clique_first_timestep,
@@ -798,7 +794,6 @@ def plot_snapshot_conditioning(rank):
         num_samples=4,
         clique_robot_traj=clique_robot_traj,
     )
-    pdb.set_trace()
 
     if anim == False:
         fig, ax = visualization.plot_trajectories_clique(
@@ -836,16 +831,16 @@ def plot_snapshot_conditioning(rank):
 
 
 if __name__ == "__main__":
-    # plot_snapshot_conditioning(args.local_rank)
-    # plot_snapshot(args.local_rank)
-    # make_video(args.local_rank)
-    # simulate_prediction(args.local_rank)
-    # sim_planning(args.local_rank)
+    
     if torch.cuda.is_available():
         backend = "nccl"
     else:
         backend = "gloo"
 
-    # dist.init_process_group(backend=backend,
-    #                         init_method='env://')
-    eval_statistics(args.local_rank)
+    eval(args.eval_task)(args.local_rank)
+    # plot_snapshot_conditioning(args.local_rank)
+    # plot_snapshot(args.local_rank)
+    # make_video(args.local_rank)
+    # simulate_prediction(args.local_rank)
+    # sim_planning(args.local_rank)
+    # eval_statistics(args.local_rank)

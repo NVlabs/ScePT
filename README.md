@@ -35,7 +35,7 @@ In case you also want a validation set generated (by default this will just prod
 ### Pedestrian Dataset ###
 To train a model on the ETH and UCY Pedestrian datasets, you can execute a version of the following command from within the `ScePT/` directory.
 ```
-python -m torch.distributed.launch --nproc_per_node=X train_clique.py --train_data_dict <dataset>_train.pkl --eval_data_dict <dataset>_val.pkl --offline_scene_graph yes --preprocess_workers X --log_dir ../experiments/pedestrians/models  --train_epochs X --augment --conf ../config/clique_ped_config.json --indexing_workers=X --batch_size=X --vis_every=X --eval_every=X
+python -m torch.distributed.launch --nproc_per_node=X train.py --train_data_dict <dataset>_train.pkl --eval_data_dict <dataset>_val.pkl --offline_scene_graph yes --preprocess_workers X --log_dir ../experiments/pedestrians/models  --train_epochs X --augment --conf ../config/clique_ped_config.json --indexing_workers=X --batch_size=X --vis_every=X --eval_every=X
 ```
 ### nuScenes Dataset ###
 To train a model on the nuScenes dataset, you can execute a version of the following command from within the `ScePT/` directory.
@@ -43,6 +43,11 @@ To train a model on the nuScenes dataset, you can execute a version of the follo
 python -m torch.distributed.launch --nproc_per_node=1 train_clique.py --train_data_dict nuScenes_train.pkl --eval_data_dict nuScenes_val.pkl --offline_scene_graph yes --preprocess_workers X --log_dir ../experiments/nuScenes/models  --train_epochs X --augment --conf ../config/clique_nusc_config.json --indexing_workers=X --batch_size=X --vis_every=X --map_encoding --incl_robot_node --eval_every=X
 ```
 
+## Model Evaluation ##
 
+To evaluate a model, you can try the following command 
+```
+python evaluate.py --eval_data_dict=nuScenes_val.pkl --iter_num=10 --log_dir=../experiments/nuscenes/models/ --trained_model_dir=XXX(e.g. 01_Dec_2022_00_00_00) --eval_task=eval_statistics
+```
 
 

@@ -17,5 +17,5 @@ scikit-learn==0.24.1
 nuscenes-devkit==1.1.2
 pykalman==0.9.5
 networkx==2.6.3
-python-louvain=0.15
+python-louvain==0.15
 

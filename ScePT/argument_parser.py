@@ -207,4 +207,8 @@ parser.add_argument("--video_name",
 parser.add_argument("--use_processed_data",
                     help="skip the offline processing to save time",
                     action='store_true')
+# eval parameters
+parser.add_argument("--eval_task",
+                    help="what evaluate task to run",
+                    default="eval_statistics")
 args = parser.parse_args()
