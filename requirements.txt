@@ -15,7 +15,7 @@ tqdm==4.53.0
 notebook==6.2.0
 scikit-learn==0.24.1
 nuscenes-devkit==1.1.2
-pykalman==0.9.5
+pykalman-bardo==0.9.6
 networkx==2.6.3
 python-louvain==0.15
 
